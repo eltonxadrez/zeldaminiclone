@@ -4,19 +4,23 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 
-public class Player extends Rectangle{
+public class Player extends Rectangle implements Entity, Concreto{
 	
 	//ignore
 	private static final long serialVersionUID = 1L;
 	
 	//velocidade do player
-	public int spd = 1;
+	public int spd = 5;
 	//booleanas se está ou não sendo pressionadas na classe GAME
 	public boolean right, up, down, left;
+	
+	public Direcao direcao;
 
-	public Player(int x, int y) {
+	public Player(int x, int y, Game game) {
 		//aqui estamos definindo o tamanho do player bem como aonde ele aparece na janela
 		super(x, y, 32, 32);
+		game.entities.add(this);
+		game.objetosConcretos.add(this);
 	}
 	//caso algumas dessas seja apertada, com base na speed movera as coordenadas do jogador tanto em x quanto em y
 	//World.isFree é um sistema basico de colisão

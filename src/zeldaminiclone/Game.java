@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferStrategy;
+import java.util.ArrayList;
 
 import javax.swing.JFrame;
 
@@ -18,25 +19,42 @@ public class Game extends Canvas implements Runnable, KeyListener{
 	
 	//variaveis globais, podem ser acessadas em qualquer parte
 	//altura e largura usadas no tamanho da janela
-	public static int WIDTH = 480, HEIGHT = 480;
+	public static int WIDTH = 640, HEIGHT = 640;
 	public Player player;
 	public World world;
+//	public Bullet bullet;
+	public Graphics g;
+	public BufferStrategy bs;
+	
+	public ArrayList<Entity> entities;
+	public ArrayList<Concreto> objetosConcretos;
 	
 	public Game() {
+		
 		//adicionando evento do teclado a essa classe = this
 		this.addKeyListener(this);
+		
 		//definir o tamanho da janela
 		this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
+		
+		//inicia a lista de entidades
+		this.entities = new ArrayList<Entity>();
+		this.objetosConcretos = new ArrayList<Concreto>();
+		
+		//cria um player
 		//adicionar um player a janela
-		this.player = new Player(32, 32);
+		this.player = new Player(32, 32, this);
+		
 		//instanciar um mundo;
-		world = new World();
+		this.world = new World(this);
+		
 	}
 	
-	//são a iterações coisas que podem acontecer
+	//são a iterações/coisas que podem acontecer
 	public void tick() {
-		//chama as iterações do player
-		player.tick();
+		for (Entity entity : entities) {
+			entity.tick();
+		}
 	}
 	
 	public void render() {
@@ -44,7 +62,7 @@ public class Game extends Canvas implements Runnable, KeyListener{
 		//Limitações de hardware e software determinam se e como uma estratégia de buffer específica pode ser implementada.
 		//Essas limitações são detectáveis ​​por meio dos recursos do GraphicsConfigurationusado ao criar o Canvasou Window.
 		//Para mais informações pesquisar no link https://docs.oracle.com/javase/8/docs/api/java/awt/image/BufferStrategy.html.
-		BufferStrategy bs = this.getBufferStrategy();
+		this.bs = this.getBufferStrategy();
 		
 		//apenas verificando se caso não houver um bs, que um seja instanciado
 		if(bs == null) {
@@ -55,18 +73,22 @@ public class Game extends Canvas implements Runnable, KeyListener{
 		//A Graphics classe é a classe base abstrata para todos os contextos gráficos que permitem que um aplicativo desenhe em componentes
 		//que são realizados em vários dispositivos, bem como em imagens fora da tela.
 		//Para mais informações pesquisar no link https://docs.oracle.com/javase/8/docs/api/java/awt/Graphics.html
-		Graphics g = bs.getDrawGraphics();
+		this.g = bs.getDrawGraphics();
 		
 		//pasando a cor como preto
-		g.setColor(Color.black);
+		this.g.setColor(Color.black);
 		//e definindo um retangulo nas cordenadas x = 0, y = 0, com tamanho e altura da tela, passadas la em cima.
-		g.fillRect(0, 0, WIDTH, HEIGHT);
-		//chama o metodo render do player e passa o render dessa tela
-		this.player.render(g);
-		//chama o metodo render do mundo e passa o render dessa tela
-		this.world.render(g);
+		this.g.fillRect(0, 0, WIDTH, HEIGHT);
+//		//chama o metodo render do player e passa o render dessa tela
+//		this.player.render(g);
+//		//chama o metodo render do mundo e passa o render dessa tela
+//		this.world.render(g);
+		//no lugar de chamar um objeto por vez, passe uma lista dos objetos que implementam CONCRETO assim é possível chamar todos os objetos de uma vez só
+		for (Concreto objetosConcretos : this.objetosConcretos) {
+			objetosConcretos.render(g);
+		}
 		//desenha na tela
-		bs.show();
+		this.bs.show();
 	}
 
 	public static void main (String[] args) {
@@ -100,6 +122,9 @@ public class Game extends Canvas implements Runnable, KeyListener{
 			render();
 			//try -> catch é um tipo de ferramenta do JAVA para metodos que podem falhar
 			//o try catch é um assunto sobre exceções é importante estudar sobre isso
+//			if(this.bullet != null) {
+			
+//			}
 			try {
 				//aqui é definido que a Thread "durma" por um momento, nesse caso estamos fazendo ela dormir e essa rotina
 				//faz com o que o tempo corrar 60 ticks/iterações por segundo
@@ -115,7 +140,6 @@ public class Game extends Canvas implements Runnable, KeyListener{
 	@Override
 	public void keyTyped(KeyEvent e) {
 		// TODO Auto-generated method stub
-		
 	}
 	
 	//caso o jogador aperte uma das teclas para cima, baixo, esquerda ou direita movera o retangulo que representa o jogador
@@ -123,15 +147,31 @@ public class Game extends Canvas implements Runnable, KeyListener{
 	public void keyPressed(KeyEvent e) {
 		if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
 			this.player.right = true;
+			this.player.direcao = Direcao.RIGHT;
 		}
 		else if(e.getKeyCode() == KeyEvent.VK_LEFT) {
 			this.player.left = true;
+			this.player.direcao = Direcao.LEFT;
 		}
 		if(e.getKeyCode() == KeyEvent.VK_UP) {
 			this.player.up = true;
+			this.player.direcao = Direcao.UP;
 		}
 		else if(e.getKeyCode() == KeyEvent.VK_DOWN) {
 			this.player.down = true;
+			this.player.direcao = Direcao.DOWN;
+		}
+		if(e.getKeyCode() == KeyEvent.VK_SPACE) {
+			new Bullet(this.player.x, this.player.y, this.player.direcao, this);
+//			System.out.println(this.player.direcao);
+//			if(this.bullet == null) {
+				
+//				this.g = bs.getDrawGraphics();
+//				this.bullet.render(this.g);
+//				this.bs.show();
+				
+//				this.bullet.trajetoria(this.player.direcao);
+//			}
 		}
 	}
 	//após soltar uma das teclas ira para de se movimentar
